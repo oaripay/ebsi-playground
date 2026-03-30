@@ -1,0 +1,27 @@
+{
+	"did": "did:ebsi:z24WDGxHi3ZGizpi9U4xnuCP",
+	"didVersion": 1,
+	"keys": {
+		"ES256": {
+			"id": "5kBStZueCIN8xf8lIPcm5N8kTq_VCgKMQDk29Ygb5uw",
+			"isHardwareWallet": false,
+			"kid": "did:ebsi:z24WDGxHi3ZGizpi9U4xnuCP#5kBStZueCIN8xf8lIPcm5N8kTq_VCgKMQDk29Ygb5uw",
+			"privateKeyHex": "0xa4415ffb66230fbc9fcfac3ff9bbf96af2d3d79768965a2e052d15bc2da38479",
+			"privateKeyJwk": {
+				"kty": "EC",
+				"x": "xmZXqwyLYqw95P5GVj0GmHWxp7X7XqkckMOf4SFo1NA",
+				"y": "bkhQ4vNH3hdLJ34Dj9Fetv9UHS_tk9M23p6Ec3s1qcY",
+				"crv": "P-256",
+				"d": "pEFf-2YjD7yfz6w_-bv5avLT15dollouBS0VvC2jhHk"
+			},
+			"publicKeyHex": "0x04c66657ab0c8b62ac3de4fe46563d069875b1a7b5fb5ea91c90c39fe12168d4d06e4850e2f347de174b277e038fd15eb6ff541d2fed93d336de9e84737b35a9c6",
+			"publicKeyJwk": {
+				"kty": "EC",
+				"x": "xmZXqwyLYqw95P5GVj0GmHWxp7X7XqkckMOf4SFo1NA",
+				"y": "bkhQ4vNH3hdLJ34Dj9Fetv9UHS_tk9M23p6Ec3s1qcY",
+				"crv": "P-256"
+			},
+			"publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExmZXqwyLYqw95P5GVj0GmHWxp7X7\nXqkckMOf4SFo1NBuSFDi80feF0snfgOP0V62/1QdL+2T0zbenoRzezWpxg==\n-----END PUBLIC KEY-----\n"
+		}
+	}
+}
