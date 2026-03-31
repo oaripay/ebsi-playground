@@ -1,0 +1,14 @@
+---
+services:
+  pushprox-client:
+    image: prometheuscommunity/pushprox:master
+    profiles: [all, besu]
+    restart: unless-stopped
+    networks:
+      - ebsi-besu-network
+      - ebsi-node
+    entrypoint: /app/pushprox-client
+    command: ["--proxy-url=${NODE_PUSHPROX_URL}", "--log.level=error", "--fqdn=${NODE_NAME}"]
+    extra_hosts:
+      - "${NODE_NAME}:${DOCKER_NODE_NETWORK_GW}"
+      # - 'aio04-0-ebsi-test-lux.ebsi.eu:192.168.1.1'

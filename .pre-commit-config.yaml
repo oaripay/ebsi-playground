@@ -1,0 +1,19 @@
+# Pre-commit configuration enabling Gitleaks to scan staged changes for secrets
+# Docs: https://pre-commit.com/
+# Gitleaks hook: https://github.com/gitleaks/gitleaks
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    # Use a specific version tag for reproducibility. Update as needed.
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+        name: gitleaks (protect staged)
+        args:
+          # Protect mode checks for leaks in the provided scope.
+          - git
+          # Scan only staged changes for faster local hooks.
+          - --staged
+          # Provide verbose output to aid debugging when something is flagged.
+          - --verbose
+          # Do not show the banner
+          - --no-banner

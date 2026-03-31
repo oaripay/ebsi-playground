@@ -1,0 +1,75 @@
+---
+services:
+
+  ## timestamp-api-v3 (timestamp-api-v3)
+#  timestamp-api-v3:
+#    image: ${IMAGE_NAME_timestamp_api_v3}:${IMAGE_TAG_timestamp_api_v3:-local}
+#    extends:
+#      file: ./common.yaml
+#      service: common-core-service-api
+#    build:
+#      context: "${GIT_CORE_SERVICES}/apis/timestamp"
+#    env_file:
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+#        required: false
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+#        required: false
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/timestamp-api-v3.env
+#        required: false
+#    labels:
+#      - traefik.enable=true
+#      - traefik.http.routers.timestamp-api-v3.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/timestamp/v3`)
+#      - traefik.http.routers.timestamp-api-v3.service=timestamp-api-v3
+#      - traefik.http.routers.timestamp-api-v3.entrypoints=web,web-secure
+#      - traefik.http.middlewares.timestamp-api-v3-headers.headers.stspreload=true
+#      - traefik.http.middlewares.timestamp-api-v3-headers.headers.stsseconds=31536000
+#      - traefik.http.middlewares.timestamp-api-v3-headers.headers.contenttypenosniff=true
+#      - traefik.http.middlewares.timestamp-api-v3-headers.headers.referrerpolicy=origin-when-cross-origin
+#      - traefik.http.routers.timestamp-api-v3.middlewares=timestamp-api-v3-headers@docker
+#      - traefik.http.services.timestamp-api-v3.loadbalancer.server.port=3000
+#      - traefik.http.services.timestamp-api-v3.loadbalancer.healthcheck.path=/timestamp/v3/health
+#      - traefik.http.services.timestamp-api-v3.loadbalancer.healthcheck.headers.EBSI-Healthcheck=1
+#      - traefik.http.services.timestamp-api-v3.loadbalancer.healthcheck.interval=30s
+#      - traefik.http.services.timestamp-api-v3.loadbalancer.healthcheck.timeout=30s
+#      - traefik.http.routers.local-timestamp-api-v3.rule=Host(`api.local`)&&PathPrefix(`/timestamp/v3`)
+#      - traefik.http.routers.local-timestamp-api-v3.service=local-timestamp-api-v3
+#      - traefik.http.services.local-timestamp-api-v3.loadbalancer.server.port=3000
+#      - app=timestamp-api-v3
+
+
+  ## timestamp-api-v4 (timestamp-api-v4)
+  timestamp-api-v4:
+    image: ${IMAGE_NAME_timestamp_api_v4}:${IMAGE_TAG_timestamp_api_v4:-local}
+    extends:
+      file: ./common.yaml
+      service: common-core-service-api
+    build:
+      context: "${GIT_CORE_SERVICES}/apis/timestamp-v4"
+    env_file:
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/timestamp-api-v4.env
+        required: false
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.timestamp-api-v4.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/timestamp/v4`)
+      - traefik.http.routers.timestamp-api-v4.service=timestamp-api-v4
+      - traefik.http.routers.timestamp-api-v4.entrypoints=web,web-secure
+      - traefik.http.routers.timestamp-api-v4.tls=true
+      - traefik.http.routers.timestamp-api-v4.tls.certresolver=letsencrypt-tls
+      - traefik.http.middlewares.timestamp-api-v4-headers.headers.stspreload=true
+      - traefik.http.middlewares.timestamp-api-v4-headers.headers.stsseconds=31536000
+      - traefik.http.middlewares.timestamp-api-v4-headers.headers.contenttypenosniff=true
+      - traefik.http.middlewares.timestamp-api-v4-headers.headers.referrerpolicy=origin-when-cross-origin
+      - traefik.http.routers.timestamp-api-v4.middlewares=timestamp-api-v4-headers@docker
+      - traefik.http.services.timestamp-api-v4.loadbalancer.server.port=3000
+      - traefik.http.services.timestamp-api-v4.loadbalancer.healthcheck.path=/timestamp/v4/health
+      - traefik.http.services.timestamp-api-v4.loadbalancer.healthcheck.headers.EBSI-Healthcheck=1
+      - traefik.http.services.timestamp-api-v4.loadbalancer.healthcheck.interval=30s
+      - traefik.http.services.timestamp-api-v4.loadbalancer.healthcheck.timeout=30s
+      - traefik.http.routers.local-timestamp-api-v4.rule=Host(`api.local`)&&PathPrefix(`/timestamp/v4`)
+      - traefik.http.routers.local-timestamp-api-v4.service=local-timestamp-api-v4
+      - traefik.http.services.local-timestamp-api-v4.loadbalancer.server.port=3000
+      - app=timestamp-api-v4

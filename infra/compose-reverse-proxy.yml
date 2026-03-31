@@ -1,0 +1,31 @@
+---
+services:
+  node-reverse-proxy:
+    image: ${IMAGE_NAME_node_reverse_proxy}:${IMAGE_TAG_node_reverse_proxy}
+    restart: unless-stopped
+    networks:
+      - ebsi-infra
+    ports:
+      #- "${DOCKER_INFRA_EXPOSE_PORTS_IP}:80:80"
+      #- "${DOCKER_INFRA_EXPOSE_PORTS_IP}:443:443"
+      - "${DOCKER_INFRA_EXPOSE_PORTS_IP}:1080:1080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      # - "${VOLUMES_ROOTDIR}/node-reverse-proxy/config:/configuration"
+    command:
+      - "--log.level=${NODE_REVERSE_PROXY_LOGLEVEL:-INFO}"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.constraints=Label(`traefik_node`,`infra`)" # we need a label constraint to watch this node only
+      - "--entrypoints.web.address=:1080"
+      #     - "--entrypoints.web-secure.address=:443"
+      # - '--providers.file.directory=/configuration/'
+      # - '--providers.file.watch=true'
+      # - '--metrics.prometheus=true'
+      # - '--metrics.prometheus.entryPoint=metrics'
+      # - '--entryPoints.metrics.address=:9102'
+      # - '--certificatesresolvers.letsencrypt-tls.acme.tlschallenge=true'
+      # - '--certificatesresolvers.letsencrypt-tls.acme.email=letsencrypt@oari.io'
+      # - '--certificatesresolvers.letsencrypt-tls.acme.storage=/configuration/certs/acme.json'
+      - "--ping"

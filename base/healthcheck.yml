@@ -1,0 +1,37 @@
+---
+services:
+
+  healthcheck:
+    image: ${IMAGE_NAME_healthcheck:-ebsi/healthcheck}:${IMAGE_TAG_healthcheck:-local}
+    profiles: [all, healthcheck]
+    pull_policy: ${DOCKER_PULL_POLICY:-never}
+    build:
+      context: ${GIT_HEALTHCHECK}
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    stop_grace_period: 1s
+    networks:
+      - ebsi-node
+    ports:
+      - "${DOCKER_NODE_EXPOSE_PORTS_IP}:9009:3000"
+    environment:
+      - HOST=${API_DOMAIN}
+      - PROXY_HOST=node-reverse-proxy
+      - TIMEOUT=30000
+      - PORT=3000
+      - VERBOSE_ON_SUCCESS=false
+      - VERBOSE_ON_ERROR=true
+      - SERVICES_RELOAD_PERIOD=60
+    volumes:
+      - type: bind
+        source: "./healthcheck/services.yml"
+        target: "/app/services.yml"
+        read_only: true
+    labels:
+      - "traefik_node=${NODE_NAME}"
+      - traefik.enable=true
+      - traefik.http.routers.healthcheck.entrypoints=web
+      - traefik.http.routers.healthcheck.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/health`)
+      - traefik.http.routers.healthcheck.service=healthcheck
+      - traefik.http.services.healthcheck.loadbalancer.server.port=3000
+      - app=healthcheck

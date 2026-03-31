@@ -1,0 +1,27 @@
+---
+include:
+  - ./debug.yml
+  - ./node-reverse-proxy.yml
+  - ./healthcheck.yml
+  - ./monitoring.yml
+  - ./besu.yml
+#  - ./graph-node.yml
+
+  # core-services APIs:
+  - ./core-services/builder-core-services.yml
+  - ./core-services/authorisation-api.yml
+  - ./core-services/did-registry-api.yml
+  - ./core-services/ledger-api.yml
+  - ./core-services/timestamp-api.yml
+  - ./core-services/track-and-trace-api.yml
+  - ./core-services/trusted-issuers-registry-api.yml
+  - ./core-services/trusted-schemas-registry-api.yml
+  - ./core-services/trusted-policies-registry-api.yml
+
+networks:
+  ebsi-besu-network:
+    name: "ebsi-besu-network"
+    external: true
+  ebsi-node:
+    name: "${DOCKER_NODE_NETWORK_NAME}"
+    external: true

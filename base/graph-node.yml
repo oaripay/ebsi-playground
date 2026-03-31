@@ -1,0 +1,77 @@
+---
+services:
+
+  ## graph-node (graph-node)
+  graph-node:
+    image: ${IMAGE_NAME_graph_node}:${IMAGE_TAG_graph_node}
+    profiles: &ref_profiles [all, graph-node]
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    # ports:
+    #   - 18000:8000
+    depends_on:
+      - graph-node-ipfs
+      - graph-node-postgres
+    environment:
+      postgres_host: graph-node-postgres
+      postgres_user: postgres
+      postgres_pass: postgres
+      postgres_db: graph-node
+      postgres_port: 5432
+      ipfs: graph-node-ipfs:5001
+      ethereum: besu:http://host.docker.internal:8545
+      GRAPH_LOG: info
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.graph-node.rule=Host(`${APP_DOMAIN}`)&&PathPrefix(`/graph`)
+      - traefik.http.routers.graph-node.service=graph-node
+      - traefik.http.routers.graph-node.entrypoints=web
+      - traefik.http.middlewares.graph-node-headers.headers.stspreload=true
+      - traefik.http.middlewares.graph-node-headers.headers.stsseconds=31536000
+      - traefik.http.middlewares.graph-node-headers.headers.contenttypenosniff=true
+      - traefik.http.middlewares.graph-node-headers.headers.referrerpolicy=origin-when-cross-origin
+      - traefik.http.routers.graph-node.middlewares=graph-node-headers@docker
+      - traefik.http.services.graph-node.loadbalancer.server.port=8000
+      - app=graph-node
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8000"]
+      interval: "30s"
+      timeout: "3s"
+      retries: "0"
+
+  ## graph-node (graph-node-ipfs)
+  graph-node-ipfs:
+    image: ${IMAGE_NAME_graph_node_ipfs}:${IMAGE_TAG_graph_node_ipfs}
+    profiles: *ref_profiles
+    container_name: graph-node-ipfs
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    volumes:
+      - "${VOLUMES_ROOTDIR}/graph-node/ipfs:/data/ipfs:Z"
+    labels:
+      - app=graph-node-ipfs
+
+  ## graph-node (graph-node-postgres)
+  graph-node-postgres:
+    image: ${IMAGE_NAME_graph_node_postgres}:${IMAGE_TAG_graph_node_postgres}
+    profiles: *ref_profiles
+    container_name: graph-node-postgres
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: graph-node
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_INITDB_ARGS: -E UTF8 --locale=C
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - "${VOLUMES_ROOTDIR}/graph-node/postgresql:/var/lib/postgresql/data:Z"
+    command: postgres -c 'shared_preload_libraries=pg_stat_statements' -c 'max_connections=200'
+    labels:
+      - app=graph-node-postgresql

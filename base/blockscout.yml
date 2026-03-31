@@ -1,0 +1,216 @@
+---
+# DOC: https://github.com/blockscout/blockscout/tree/master/docker-compose
+
+services:
+  blockscout-redis-db:
+    image: redis:alpine
+    profiles: &ref_profiles [all, blockscout]
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    volumes:
+      - "${VOLUMES_ROOTDIR}/blockscout-redis-db:/data"
+
+  blockscout-db-init:
+    image: postgres:15
+    profiles: *ref_profiles
+    restart: "no"
+    network_mode: "none"
+    volumes:
+      - "${VOLUMES_ROOTDIR}/blockscout-db:/var/lib/postgresql/data"
+    entrypoint:
+      - sh
+      - -c
+      - |
+        chown -R 2000:2000 /var/lib/postgresql/data
+
+  blockscout-db:
+    image: postgres:15
+    profiles: *ref_profiles
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    depends_on:
+      blockscout-db-init:
+        condition: service_completed_successfully
+    user: 2000:2000
+    shm_size: 256m
+    command: postgres -c 'max_connections=200' -c 'client_connection_check_interval=60000'
+    environment:
+      POSTGRES_DB: "blockscout"
+      POSTGRES_USER: ${BLOCKSCOUT_DB_USERNAME}
+      POSTGRES_PASSWORD: ${BLOCKSCOUT_DB_PW}
+    volumes:
+      - "${VOLUMES_ROOTDIR}/blockscout-db:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blockscout -d blockscout"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  blockscout-backend:
+    image: "blockscout/blockscout:${IMAGE_TAG_blockscout_backend}"
+    profiles: *ref_profiles
+    restart: unless-stopped
+    command: sh -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
+    networks:
+      - ebsi-node
+    depends_on:
+      blockscout-redis-db:
+        condition: service_started
+      blockscout-db:
+        condition: service_healthy
+      besu:
+        condition: service_healthy
+    links:
+      - blockscout-db:database
+    env_file:
+      - path: "${ENV_DIR}/all_nodes/blockscout/blockscout-backend.env"
+        required: true
+    volumes:
+      - "${VOLUMES_ROOTDIR}/blockscout-backend-logs:/app/logs"
+
+  blockscout-frontend:
+    # https://github.com/blockscout/frontend
+    image: "ghcr.io/blockscout/frontend:${IMAGE_TAG_blockscout_frontend}"
+    profiles: *ref_profiles
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    depends_on:
+      - blockscout-backend
+    env_file:
+      - path: "${ENV_DIR}/all_nodes/blockscout/blockscout-frontend.env"
+        required: true
+
+  ## microservice plugins:
+
+  blockscout-visualizer:
+    # https://github.com/blockscout/blockscout-rs/pkgs/container/visualizer
+    image: "ghcr.io/blockscout/visualizer:${IMAGE_TAG_blockscout_visualizer}"
+    profiles: *ref_profiles
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    environment:
+      VISUALIZER__SERVER__GRPC__ENABLED: "false"
+
+  blockscout-sig-provider:
+    # https://github.com/blockscout/blockscout-rs/pkgs/container/sig-provider
+    image: "ghcr.io/blockscout/sig-provider:${IMAGE_TAG_blockscout_sig_provider}"
+    profiles: *ref_profiles
+    restart: unless-stopped
+    stop_grace_period: 1s
+    networks:
+      - ebsi-node
+
+  blockscout-stats-db-init:
+    image: postgres:15
+    profiles: *ref_profiles
+    restart: "no"
+    network_mode: "none"
+    volumes:
+      - "${VOLUMES_ROOTDIR}/blockscout-stats-db:/var/lib/postgresql/data"
+    entrypoint:
+      - sh
+      - -c
+      - |
+        chown -R 2000:2000 /var/lib/postgresql/data
+
+  blockscout-stats-db:
+    image: postgres:15
+    profiles: *ref_profiles
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    depends_on:
+      blockscout-stats-db-init:
+        condition: service_completed_successfully
+    user: 2000:2000
+    shm_size: 256m
+    command: postgres -c 'max_connections=200'
+    environment:
+      POSTGRES_DB: "stats"
+      POSTGRES_USER: ${BLOCKSCOUT_STATS_DB_USERNAME}
+      POSTGRES_PASSWORD: ${BLOCKSCOUT_STATS_DB_PW}
+    volumes:
+      - "${VOLUMES_ROOTDIR}/blockscout-stats-db:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stats -d stats"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  blockscout-stats:
+    # https://github.com/blockscout/blockscout-rs/pkgs/container/stats
+    image: "ghcr.io/blockscout/stats:${IMAGE_TAG_blockscout_stats}"
+    profiles: *ref_profiles
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    depends_on:
+      blockscout-stats-db:
+        condition: service_healthy
+      blockscout-backend:
+        condition: service_started
+    env_file:
+      - path: "${ENV_DIR}/all_nodes/blockscout/blockscout-stats.env"
+        required: true
+
+  blockscout-proxy:
+    image: "${IMAGE_NAME_blockscout_proxy}:${IMAGE_TAG_blockscout_proxy}"
+    profiles: *ref_profiles
+    restart: unless-stopped
+    networks:
+      - ebsi-node
+    depends_on:
+      blockscout-backend:
+        condition: service_started
+      blockscout-frontend:
+        condition: service_started
+      blockscout-stats:
+        condition: service_started
+    volumes:
+      - "./blockscout/proxy:/etc/nginx/templates"
+    environment:
+      SERVER_NAME: "${BLOCKSCOUT_DOMAIN}"
+      BACK_PROXY_PASS: "http://blockscout-backend:4000"
+      FRONT_PROXY_PASS: "http://blockscout-frontend:3000"
+      STATS_PROXY_PASS: "http://blockscout-stats:8050"
+      VISUALIZER_PROXY_PASS: "http://blockscout-visualizer:8050"
+    labels:
+      - "traefik_node=${NODE_NAME}"
+      - traefik.enable=true
+      # frontend:
+      - traefik.http.routers.blockscout.rule=Host(`${BLOCKSCOUT_DOMAIN}`)
+      - traefik.http.routers.blockscout.entrypoints=web,web-secure
+      - traefik.http.routers.blockscout.service=blockscout-service
+      - traefik.http.routers.blockscout.tls=true
+      - traefik.http.routers.blockscout.tls.certresolver=letsencrypt-tls
+      - traefik.http.services.blockscout-service.loadbalancer.server.port=80
+      # blockscout-stats:
+      - traefik.http.routers.blockscout-stats.rule=Host(`${BLOCKSCOUT_DOMAIN}`) && (PathPrefix(`/api/v1/counters`) || PathPrefix(`/api/v1/lines`))
+      - traefik.http.routers.blockscout-stats.entrypoints=web,web-secure
+      - traefik.http.routers.blockscout-stats.service=blockscout-stats
+      - traefik.http.routers.blockscout-stats.tls=true
+      - traefik.http.routers.blockscout-stats.tls.certresolver=letsencrypt-tls
+      - traefik.http.services.blockscout-stats.loadbalancer.server.port=8080
+      # blockscout-visualizer:
+      - traefik.http.routers.blockscout-visualizer.rule=Host(`${BLOCKSCOUT_DOMAIN}`) && PathPrefix(`/api/v1/transactions`)
+      - traefik.http.routers.blockscout-visualizer.entrypoints=web,web-secure
+      - traefik.http.routers.blockscout-visualizer.service=blockscout-visualizer
+      - traefik.http.routers.blockscout-visualizer.tls=true
+      - traefik.http.routers.blockscout-visualizer.tls.certresolver=letsencrypt-tls
+      - traefik.http.services.blockscout-visualizer.loadbalancer.server.port=8081
+      # CORS:
+      - traefik.http.middlewares.blockscout-cors.headers.accessControlAllowOriginList=*
+      - traefik.http.middlewares.blockscout-cors.headers.accessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS
+      - traefik.http.middlewares.blockscout-cors.headers.accessControlAllowHeaders=Content-Type,Authorization
+      - traefik.http.middlewares.blockscout-cors.headers.accessControlMaxAge=100
+      - traefik.http.middlewares.blockscout-cors.headers.addVaryHeader=true
+      # middlewares:
+      - traefik.http.routers.blockscout.middlewares=blockscout-cors
+      - traefik.http.routers.blockscout-stats.middlewares=blockscout-cors
+      - traefik.http.routers.blockscout-visualizer.middlewares=blockscout-cors

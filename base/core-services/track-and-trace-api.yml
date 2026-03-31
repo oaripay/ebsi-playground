@@ -1,0 +1,39 @@
+---
+services:
+
+  ## track-and-trace-api-v1 (track-and-trace-api-v1)
+  track-and-trace-api-v1:
+    image: ${IMAGE_NAME_track_and_trace_api_v1}:${IMAGE_TAG_track_and_trace_api_v1:-local}
+    extends:
+      file: ./common.yaml
+      service: common-core-service-api
+    build:
+      context: "${GIT_CORE_SERVICES}/apis/track-and-trace-v1"
+    env_file:
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/track-and-trace-api-v1.env
+        required: false
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.track-and-trace-api-v1.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/track-and-trace/v1`)
+      - traefik.http.routers.track-and-trace-api-v1.service=track-and-trace-api-v1
+      - traefik.http.routers.track-and-trace-api-v1.entrypoints=web,web-secure
+      - traefik.http.routers.track-and-trace-api-v1.tls=true
+      - traefik.http.routers.track-and-trace-api-v1.tls.certresolver=letsencrypt-tls
+      - traefik.http.middlewares.track-and-trace-api-v1-headers.headers.stspreload=true
+      - traefik.http.middlewares.track-and-trace-api-v1-headers.headers.stsseconds=31536000
+      - traefik.http.middlewares.track-and-trace-api-v1-headers.headers.contenttypenosniff=true
+      - traefik.http.middlewares.track-and-trace-api-v1-headers.headers.referrerpolicy=origin-when-cross-origin
+      - traefik.http.routers.track-and-trace-api-v1.middlewares=track-and-trace-api-v1-headers@docker
+      - traefik.http.services.track-and-trace-api-v1.loadbalancer.server.port=3000
+      - traefik.http.services.track-and-trace-api-v1.loadbalancer.healthcheck.path=/track-and-trace/v1/health
+      - traefik.http.services.track-and-trace-api-v1.loadbalancer.healthcheck.headers.EBSI-Healthcheck=1
+      - traefik.http.services.track-and-trace-api-v1.loadbalancer.healthcheck.interval=30s
+      - traefik.http.services.track-and-trace-api-v1.loadbalancer.healthcheck.timeout=30s
+      - traefik.http.routers.local-track-and-trace-api-v1.rule=Host(`api.local`)&&PathPrefix(`/track-and-trace/v1`)
+      - traefik.http.routers.local-track-and-trace-api-v1.service=local-track-and-trace-api-v1
+      - traefik.http.services.local-track-and-trace-api-v1.loadbalancer.server.port=3000
+      - app=track-and-trace-api-v1

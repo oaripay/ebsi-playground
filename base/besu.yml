@@ -1,0 +1,118 @@
+---
+services:
+  besu:
+    # image: hyperledger/besu:24.9.1
+    image: ${IMAGE_NAME_besu}:${IMAGE_TAG_besu}
+    profiles: [all, besu, blockscout, core-services]
+    pull_policy: ${DOCKER_PULL_POLICY:-never}
+    build:
+      # TODO: use url
+      # context: "${GIT_CORE_SERVICES_URL}#master:/apis/did-registry-v4"
+      context: ${GIT_BESU}
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command:
+      [
+        "--nat-method",
+        "AUTO",
+        "--Xdns-enabled",
+        "true",
+        "--Xdns-update-enabled",
+        "true",
+        "--min-gas-price=0",
+      ]
+    networks:
+      ebsi-besu-network:
+        ipv4_address: "${BESU_LOCAL_IP2}"
+      ebsi-node:
+        ipv4_address: "${BESU_LOCAL_IP}"
+        aliases:
+          - besu.local
+    ports:
+      - "${DOCKER_NODE_EXPOSE_PORTS_IP}:9545:9545"
+      - "${DOCKER_NODE_EXPOSE_PORTS_IP}:8545:8545"
+      - "${DOCKER_NODE_EXPOSE_PORTS_IP}:${BESU_P2P_PORT}:${BESU_P2P_PORT}"
+      - "${DOCKER_NODE_EXPOSE_PORTS_IP}:${BESU_P2P_PORT}:${BESU_P2P_PORT}/udp"
+    environment:
+      # config: https://besu.hyperledger.org/public-networks/reference/cli/options
+      BESU_BOOTNODES: "${BESU_BOOTNODES}"
+      BESU_LOGGING: "${BESU_LOGGING:-INFO}"
+      # BESU_P2P_HOST: "${BESU_LOCAL_IP}"
+      # BESU_P2P_HOST: "host.docker.internal"
+      # BESU_P2P_HOST: "172.17.0.1"
+      BESU_P2P_HOST: "${BESU_P2P_HOST}"
+      BESU_P2P_PORT: "${BESU_P2P_PORT}"
+      BESU_GENESIS_FILE: "/genesis.json"
+      BESU_NODE_PRIVATE_KEY_FILE: "/secret/key"
+      BESU_MIN_GAS_PRICE: "0"
+      BESU_DATA_PATH: "/data"
+      BESU_REVERT_REASON_ENABLED: "true"
+      BESU_DISCOVERY_ENABLED: "true"
+      BESU_HOST_ALLOWLIST: "*"
+      BESU_MAX_PEERS: "25"
+      BESU_PRIVACY_ENABLED: "false"
+      BESU_SYNC_MODE: "FULL"
+      # RPC http:
+      BESU_RPC_HTTP_ENABLED: "true"
+      BESU_RPC_HTTP_CORS_ORIGINS: "all"
+      BESU_RPC_HTTP_HOST: "0.0.0.0"
+      BESU_RPC_HTTP_PORT: "8545"
+      BESU_RPC_HTTP_API: "ETH,NET,WEB3"
+      # RPC ws:
+      BESU_RPC_WS_ENABLED: "true"
+      BESU_RPC_WS_HOST: "0.0.0.0"
+      BESU_RPC_WS_PORT: "8546"
+      BESU_RPC_WS: "TRACE,ADMIN,ETH,NET,WEB3,IBFT,PERM,DEBUG,MINER,TXPOOL"
+      # metrics:
+      BESU_METRICS_ENABLED: "true"
+      BESU_METRICS_HOST: "0.0.0.0"
+      BESU_METRICS_PORT: "9545"
+
+      # extra settings:
+      BESU_METRICS_CATEGORY: "BLOCKCHAIN,ETHEREUM,EXECUTORS,JVM,NETWORK,PEERS,PERMISSIONING,PROCESS,PRUNER,RPC,SYNCHRONIZER,TRANSACTION_POOL"
+      BESU_BONSAI_LIMIT_TRIE_LOGS_ENABLED: "false"
+      BESU_DATA_STORAGE_FORMAT: "FOREST"
+      BESU_RPC_HTTP_MAX_ACTIVE_CONNECTIONS: "500"
+      BESU_RPC_WS_MAX_ACTIVE_CONNECTIONS: "500"
+      BESU_TARGET_GAS_LIMIT: "10000000000"
+      BESU_TX_POOL: "sequenced"
+      BESU_TX_POOL_LIMIT_BY_ACCOUNT_PERCENTAGE: "1"
+      BESU_TX_POOL_NO_LOCAL_PRIORITY: "true"
+      BESU_TX_POOL_MAX_SIZE: "10000"
+      # memory and jvm options:
+      #BESU_OPTS: "${BESU_OPTS}"
+    volumes:
+      - "${VOLUMES_ROOTDIR}/besu/data:/data"
+      # - "${VOLUMES_ROOTDIR}/besu/secret:/secret"
+      - type: bind
+        source: "${BESU_GENESIS_FILE}"
+        target: "/genesis.json"
+        read_only: true
+      - type: bind
+        source: "${BESU_NODE_KEY}"
+        target: "/secret/key"
+        read_only: true
+    labels:
+      - "traefik_node=${NODE_NAME}"
+      - traefik.enable=true
+      - traefik.http.routers.besu.entrypoints=web-secure
+      - traefik.http.routers.besu.service=besu
+      - traefik.http.routers.besu.tls=true
+      - traefik.http.routers.besu.tls.certresolver=letsencrypt-tls
+      - traefik.http.routers.besu.rule=Host(`${BESU_DOMAIN}`)&&PathPrefix(`/jsonrpc`)
+      - traefik.http.routers.besu.middlewares=besu-strip@docker
+      - traefik.http.middlewares.besu-strip.stripprefix.prefixes=/jsonrpc
+      - traefik.http.services.besu.loadbalancer.server.port=8545
+      - traefik.http.routers.besu-ws.entrypoints=web-secure
+      - traefik.http.routers.besu-ws.service=besu
+      - traefik.http.routers.besu-ws.tls=true
+      - traefik.http.routers.besu-ws.tls.certresolver=letsencrypt-tls
+      - traefik.http.routers.besu-ws.rule=Host(`${BESU_DOMAIN}`)&&PathPrefix(`/wsrpc`)
+      - traefik.http.routers.besu-ws.middlewares=besu-ws-strip@docker
+      - traefik.http.middlewares.besu-ws-strip.stripprefix.prefixes=/wsrpc
+      - traefik.http.services.besu-ws.loadbalancer.server.port=8546
+      - traefik.http.routers.local-besu.entrypoints=web
+      - traefik.http.routers.local-besu.service=local-besu
+      - traefik.http.routers.local-besu.rule=Host(`besu.local`)
+      - traefik.http.services.local-besu.loadbalancer.server.port=8545
+      - app=besu

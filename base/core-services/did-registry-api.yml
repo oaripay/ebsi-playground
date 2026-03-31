@@ -1,0 +1,73 @@
+---
+services:
+
+#  did-registry-api-v4:
+#    image: ${IMAGE_NAME_did_registry_api_v4:-ebsi/did-registry-api-v4}:${IMAGE_TAG_did_registry_api_v4:-local}
+#    extends:
+#      file: ./common.yaml
+#      service: common-core-service-api
+#    build:
+#      context: "${GIT_CORE_SERVICES}/apis/did-registry-v4"
+#    env_file:
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+#        required: false
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+#        required: false
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/did-registry-api-v4.env
+#        required: false
+#    labels:
+#      - traefik.enable=true
+#      - traefik.http.routers.did-registry-api-v4.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/did-registry/v4`)
+#      - traefik.http.routers.did-registry-api-v4.service=did-registry-api-v4
+#      - traefik.http.routers.did-registry-api-v4.entrypoints=web,web-secure
+#      - traefik.http.middlewares.did-registry-api-v4-headers.headers.stspreload=true
+#      - traefik.http.middlewares.did-registry-api-v4-headers.headers.stsseconds=31536000
+#      - traefik.http.middlewares.did-registry-api-v4-headers.headers.contenttypenosniff=true
+#      - traefik.http.middlewares.did-registry-api-v4-headers.headers.referrerpolicy=origin-when-cross-origin
+#      - traefik.http.routers.did-registry-api-v4.middlewares=did-registry-api-v4-headers@docker
+#      - traefik.http.services.did-registry-api-v4.loadbalancer.server.port=3000
+#      - traefik.http.services.did-registry-api-v4.loadbalancer.healthcheck.path=/did-registry/v4/health
+#      - traefik.http.services.did-registry-api-v4.loadbalancer.healthcheck.headers.EBSI-Healthcheck=1
+#      - traefik.http.services.did-registry-api-v4.loadbalancer.healthcheck.interval=30s
+#      - traefik.http.services.did-registry-api-v4.loadbalancer.healthcheck.timeout=30s
+#      - traefik.http.routers.local-did-registry-api-v4.rule=Host(`api.local`)&&PathPrefix(`/did-registry/v4`)
+#      - traefik.http.routers.local-did-registry-api-v4.service=local-did-registry-api-v4
+#      - traefik.http.services.local-did-registry-api-v4.loadbalancer.server.port=3000
+#      - app=did-registry-api-v4
+
+  ## did-registry-api-v5 (did-registry-api-v5)
+  did-registry-api-v5:
+    image: ${IMAGE_NAME_did_registry_api_v5}:${IMAGE_TAG_did_registry_api_v5:-local}
+    extends:
+      file: ./common.yaml
+      service: common-core-service-api
+    build:
+      context: "${GIT_CORE_SERVICES}/apis/did-registry-v5"
+    env_file:
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/did-registry-api-v5.env
+        required: false
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.did-registry-api-v5.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/did-registry/v5`)
+      - traefik.http.routers.did-registry-api-v5.service=did-registry-api-v5
+      - traefik.http.routers.did-registry-api-v5.entrypoints=web,web-secure
+      - traefik.http.routers.did-registry-api-v5.tls=true
+      - traefik.http.routers.did-registry-api-v5.tls.certresolver=letsencrypt-tls
+      - traefik.http.middlewares.did-registry-api-v5-headers.headers.stspreload=true
+      - traefik.http.middlewares.did-registry-api-v5-headers.headers.stsseconds=31536000
+      - traefik.http.middlewares.did-registry-api-v5-headers.headers.contenttypenosniff=true
+      - traefik.http.middlewares.did-registry-api-v5-headers.headers.referrerpolicy=origin-when-cross-origin
+      - traefik.http.routers.did-registry-api-v5.middlewares=did-registry-api-v5-headers@docker
+      - traefik.http.services.did-registry-api-v5.loadbalancer.server.port=3000
+      - traefik.http.services.did-registry-api-v5.loadbalancer.healthcheck.path=/did-registry/v5/health
+      - traefik.http.services.did-registry-api-v5.loadbalancer.healthcheck.headers.EBSI-Healthcheck=1
+      - traefik.http.services.did-registry-api-v5.loadbalancer.healthcheck.interval=30s
+      - traefik.http.services.did-registry-api-v5.loadbalancer.healthcheck.timeout=30s
+      - traefik.http.routers.local-did-registry-api-v5.rule=Host(`api.local`)&&PathPrefix(`/did-registry/v5`)
+      - traefik.http.routers.local-did-registry-api-v5.service=local-did-registry-api-v5
+      - traefik.http.services.local-did-registry-api-v5.loadbalancer.server.port=3000
+      - app=did-registry-api-v5

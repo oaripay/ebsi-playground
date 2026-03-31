@@ -1,0 +1,65 @@
+---
+besu:
+  method: POST
+  healthchecks:
+  - url: http://besu:8545
+    data:
+      jsonrpc: '2.0'
+      method: eth_getBlockByNumber
+      params:
+      - latest
+      - true
+      id: 1
+    check:
+      json_attribute: result.timestamp
+      function: max_age_second
+      params:
+      - 900
+#did-registry-api-v4:
+#  method: GET
+#  healthchecks:
+#  - http://did-registry-api-v4:3000/did-registry/v4/health
+did-registry-api-v5:
+  method: GET
+  healthchecks:
+  - http://did-registry-api-v5:3000/did-registry/v5/health
+#timestamp-api-v3:
+#  method: GET
+#  healthchecks:
+#  - http://timestamp-api-v3:3000/timestamp/v3/health
+timestamp-api-v4:
+  method: GET
+  healthchecks:
+  - http://timestamp-api-v4:3000/timestamp/v4/health
+track-and-trace-api-v1:
+  method: GET
+  healthchecks:
+  - http://track-and-trace-api-v1:3000/track-and-trace/v1/health
+node-reverse-proxy:
+  method: GET
+  healthchecks:
+  - url: http://node-reverse-proxy:8080/ping
+#trusted-issuers-registry-api-v4:
+#  method: GET
+#  healthchecks:
+#  - http://trusted-issuers-registry-api-v4:3000/trusted-issuers-registry/v4/health
+trusted-issuers-registry-api-v5:
+  method: GET
+  healthchecks:
+  - http://trusted-issuers-registry-api-v5:3000/trusted-issuers-registry/v5/health
+#trusted-policies-registry-api-v2:
+#  method: GET
+#  healthchecks:
+#  - http://trusted-policies-registry-api-v2:3000/trusted-policies-registry/v2/health
+trusted-policies-registry-api-v3:
+  method: GET
+  healthchecks:
+  - http://trusted-policies-registry-api-v3:3000/trusted-policies-registry/v3/health
+#trusted-schemas-registry-api-v2:
+#  method: GET
+#  healthchecks:
+#  - http://trusted-schemas-registry-api-v2:3000/trusted-schemas-registry/v2/health
+trusted-schemas-registry-api-v3:
+  method: GET
+  healthchecks:
+  - http://trusted-schemas-registry-api-v3:3000/trusted-schemas-registry/v3/health

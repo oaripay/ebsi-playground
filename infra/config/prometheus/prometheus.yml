@@ -1,0 +1,69 @@
+---
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: prometheus
+    honor_timestamps: true
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+    - targets:
+      - localhost:9090
+
+  - job_name: 'besu'
+    proxy_url: http://pushprox:8080/
+    static_configs:
+    - targets:
+      - "node1:9545"
+      - "node2:9545"
+      - "node3:9545"
+      - "node4:9545"
+    relabel_configs: &common_labels
+    - source_labels: [__address__]
+      regex: "([^:]+):\\d+"
+      target_label: instance
+    - target_label: environment
+      replacement: "test"
+    - target_label: role
+      replacement: "aio"
+    - target_label: besu_validator
+      replacement: "true"
+    - target_label: __meta_ebsi_envloc
+      replacement: "lux"
+
+  - job_name: 'traefik'
+    proxy_url: http://pushprox:8080/
+    static_configs:
+    - targets:
+      - "node1:9102"
+      - "node2:9102"
+      - "node3:9102"
+      - "node4:9102"
+    relabel_configs: *common_labels
+
+  - job_name: 'healthcheck'
+    proxy_url: http://pushprox:8080/
+    scrape_interval: 30s
+    scrape_timeout: 20s
+    static_configs:
+    - targets:
+      - "node1:9009"
+      - "node2:9009"
+      - "node3:9009"
+      - "node4:9009"
+    relabel_configs: *common_labels
+
+  # - job_name: 'nodeexporter'
+  #   proxy_url: http://pushprox:8080/
+  #   static_configs:
+  #   - targets:
+  #     - "node1:9100"
+  #     - "node2:9100"
+  #     - "node3:9100"
+  #     - "node4:9100"
+  #   relabel_configs: *common_labels

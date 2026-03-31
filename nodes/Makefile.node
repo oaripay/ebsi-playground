@@ -1,0 +1,48 @@
+COMPOSE_CMD = docker compose \
+			  --env-file ../../versions.env \
+			  --env-file ../../keys/bootnode.env \
+			  --env-file local.env \
+			  --env-file ../../global.env
+
+up:
+	$(COMPOSE_CMD) --profile all up --quiet-pull
+upd:
+	$(COMPOSE_CMD) --profile all up -d --quiet-pull
+down:
+	$(COMPOSE_CMD) --profile all down --remove-orphans
+kill:
+	$(COMPOSE_CMD) --profile all kill
+rm:
+	$(COMPOSE_CMD) --profile all rm
+build:
+	$(COMPOSE_CMD) --profile core-services build --pull builder-core-services
+	$(COMPOSE_CMD) --profile all build
+config:
+	@$(COMPOSE_CMD) --profile all config
+
+# for testing:
+besu:
+	$(COMPOSE_CMD) --profile besu up --quiet-pull
+upd-besu:
+	$(COMPOSE_CMD) --profile besu up -d --quiet-pull
+
+blockscout:
+	$(COMPOSE_CMD) --profile blockscout up --quiet-pull
+
+healthcheck:
+	$(COMPOSE_CMD) --profile healthcheck up --quiet-pull
+
+# SSL / reverse proxy management:
+upd-proxy:
+	$(COMPOSE_CMD) up -d --force-recreate node-reverse-proxy
+
+upd-blockscout:
+	$(COMPOSE_CMD) up -d --force-recreate blockscout-proxy blockscout-frontend blockscout-stats
+
+ssl-setup:
+	mkdir -p ../../volumes/$(NODE_NAME)/node-reverse-proxy/config/certs
+	$(COMPOSE_CMD) up -d --force-recreate node-reverse-proxy
+
+ssl-status:
+	docker logs $(NODE_NAME)-node-reverse-proxy-1 2>&1 | grep -i "acme\|cert\|letsencrypt\|certificate" | tail -10
+

@@ -1,0 +1,56 @@
+---
+services:
+  node-reverse-proxy:
+    image: ${IMAGE_NAME_node_reverse_proxy}:${IMAGE_TAG_node_reverse_proxy}
+    profiles: [all, blockscout, core-services]
+    restart: unless-stopped
+    networks:
+      ebsi-node:
+        ipv4_address: "${NODE_REVERSE_PROXY_LOCAL_IP}"
+        aliases:
+          - app.local
+          - api.local
+          - www.local
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+      - "${DOCKER_NODE_EXPOSE_PORTS_IP}:1080:80"
+      - "${DOCKER_NODE_EXPOSE_PORTS_IP}:9102:9102"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "${VOLUMES_ROOTDIR}/node-reverse-proxy/config:/configuration"
+    command:
+      - "--log.level=${NODE_REVERSE_PROXY_LOGLEVEL:-INFO}"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.constraints=Label(`traefik_node`,`${NODE_NAME}`)" # we need a label constraint to watch this node only
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web-secure.address=:443"
+      - "--providers.file.directory=/configuration/"
+      - "--providers.file.watch=true"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--entryPoints.metrics.address=:9102"
+      - '--certificatesresolvers.letsencrypt-tls.acme.tlschallenge=true'
+      - '--certificatesresolvers.letsencrypt-tls.acme.email=letsencrypt@oari.io'
+      - '--certificatesresolvers.letsencrypt-tls.acme.storage=/configuration/certs/acme.json'
+      - "--ping"
+    labels:
+      - "traefik_node=${NODE_NAME}"
+      - traefik.enable=true
+      - traefik.http.routers.traefik-internal.rule=Host(`${NODE_REVERSE_PROXY_DOMAIN}`)
+      - traefik.http.routers.traefik-internal.entrypoints=web
+      - traefik.http.routers.traefik-internal.service=api@internal
+      - traefik.http.routers.node-reverse-proxy.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/docs`)
+      - traefik.http.routers.node-reverse-proxy.service=node-reverse-proxy
+      - traefik.http.routers.node-reverse-proxy.entrypoints=web
+      - traefik.http.middlewares.node-reverse-proxy-redirectregex.redirectregex.regex=^https?://[^/]+/docs(/?)(.*)
+      - traefik.http.middlewares.node-reverse-proxy-redirectregex.redirectregex.replacement=https://hub-test.ebsi.eu
+      - traefik.http.middlewares.node-reverse-proxy-headers.headers.stspreload=true
+      - traefik.http.middlewares.node-reverse-proxy-headers.headers.stsseconds=31536000
+      - traefik.http.middlewares.node-reverse-proxy-headers.headers.contenttypenosniff=true
+      - traefik.http.middlewares.node-reverse-proxy-headers.headers.referrerpolicy=origin-when-cross-origin
+      - traefik.http.routers.node-reverse-proxy.middlewares=node-reverse-proxy-headers@docker,node-reverse-proxy-redirectregex@docker
+      - traefik.http.services.node-reverse-proxy.loadbalancer.server.port=443
+      - app=node-reverse-proxy

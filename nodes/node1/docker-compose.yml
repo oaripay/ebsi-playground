@@ -1,0 +1,4 @@
+---
+include:
+  - ../../base/docker-compose.yml
+  - ../../base/blockscout.yml

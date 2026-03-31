@@ -1,0 +1,74 @@
+---
+services:
+
+  ## trusted-issuers-registry-api-v4 (trusted-issuers-registry-api-v4)
+#  trusted-issuers-registry-api-v4:
+#    image: ${IMAGE_NAME_trusted_issuers_registry_api_v4}:${IMAGE_TAG_trusted_issuers_registry_api_v4:-local}
+#    extends:
+#      file: ./common.yaml
+#      service: common-core-service-api
+#    build:
+#      context: "${GIT_CORE_SERVICES}/apis/trusted-issuers-registry-v4"
+#    env_file:
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+#        required: false
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+#        required: false
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/trusted-issuers-registry-api-v4.env
+#        required: false
+#    labels:
+#      - traefik.enable=true
+#      - traefik.http.routers.trusted-issuers-registry-api-v4.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/trusted-issuers-registry/v4`)
+#      - traefik.http.routers.trusted-issuers-registry-api-v4.service=trusted-issuers-registry-api-v4
+#      - traefik.http.routers.trusted-issuers-registry-api-v4.entrypoints=web,web-secure
+#      - traefik.http.middlewares.trusted-issuers-registry-api-v4-headers.headers.stspreload=true
+#      - traefik.http.middlewares.trusted-issuers-registry-api-v4-headers.headers.stsseconds=31536000
+#      - traefik.http.middlewares.trusted-issuers-registry-api-v4-headers.headers.contenttypenosniff=true
+#      - traefik.http.middlewares.trusted-issuers-registry-api-v4-headers.headers.referrerpolicy=origin-when-cross-origin
+#      - traefik.http.routers.trusted-issuers-registry-api-v4.middlewares=trusted-issuers-registry-api-v4-headers@docker
+#      - traefik.http.services.trusted-issuers-registry-api-v4.loadbalancer.server.port=3000
+#      - traefik.http.services.trusted-issuers-registry-api-v4.loadbalancer.healthcheck.path=/trusted-issuers-registry/v4/health
+#      - traefik.http.services.trusted-issuers-registry-api-v4.loadbalancer.healthcheck.headers.EBSI-Healthcheck=1
+#      - traefik.http.services.trusted-issuers-registry-api-v4.loadbalancer.healthcheck.interval=30s
+#      - traefik.http.services.trusted-issuers-registry-api-v4.loadbalancer.healthcheck.timeout=30s
+#      - traefik.http.routers.local-trusted-issuers-registry-api-v4.rule=Host(`api.local`)&&PathPrefix(`/trusted-issuers-registry/v4`)
+#      - traefik.http.routers.local-trusted-issuers-registry-api-v4.service=local-trusted-issuers-registry-api-v4
+#      - traefik.http.services.local-trusted-issuers-registry-api-v4.loadbalancer.server.port=3000
+#      - app=trusted-issuers-registry-api-v4
+
+  ## trusted-issuers-registry-api-v5 (trusted-issuers-registry-api-v5)
+  trusted-issuers-registry-api-v5:
+    image: ${IMAGE_NAME_trusted_issuers_registry_api_v5}:${IMAGE_TAG_trusted_issuers_registry_api_v5:-local}
+    extends:
+      file: ./common.yaml
+      service: common-core-service-api
+    build:
+      context: "${GIT_CORE_SERVICES}/apis/trusted-issuers-registry-v5"
+    env_file:
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/trusted-issuers-registry-api-v5.env
+        required: false
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.trusted-issuers-registry-api-v5.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/trusted-issuers-registry/v5`)
+      - traefik.http.routers.trusted-issuers-registry-api-v5.service=trusted-issuers-registry-api-v5
+      - traefik.http.routers.trusted-issuers-registry-api-v5.entrypoints=web,web-secure
+      - traefik.http.routers.trusted-issuers-registry-api-v5.tls=true
+      - traefik.http.routers.trusted-issuers-registry-api-v5.tls.certresolver=letsencrypt-tls
+      - traefik.http.middlewares.trusted-issuers-registry-api-v5-headers.headers.stspreload=true
+      - traefik.http.middlewares.trusted-issuers-registry-api-v5-headers.headers.stsseconds=31536000
+      - traefik.http.middlewares.trusted-issuers-registry-api-v5-headers.headers.contenttypenosniff=true
+      - traefik.http.middlewares.trusted-issuers-registry-api-v5-headers.headers.referrerpolicy=origin-when-cross-origin
+      - traefik.http.routers.trusted-issuers-registry-api-v5.middlewares=trusted-issuers-registry-api-v5-headers@docker
+      - traefik.http.services.trusted-issuers-registry-api-v5.loadbalancer.server.port=3000
+      - traefik.http.services.trusted-issuers-registry-api-v5.loadbalancer.healthcheck.path=/trusted-issuers-registry/v5/health
+      - traefik.http.services.trusted-issuers-registry-api-v5.loadbalancer.healthcheck.headers.EBSI-Healthcheck=1
+      - traefik.http.services.trusted-issuers-registry-api-v5.loadbalancer.healthcheck.interval=30s
+      - traefik.http.services.trusted-issuers-registry-api-v5.loadbalancer.healthcheck.timeout=30s
+      - traefik.http.routers.local-trusted-issuers-registry-api-v5.rule=Host(`api.local`)&&PathPrefix(`/trusted-issuers-registry/v5`)
+      - traefik.http.routers.local-trusted-issuers-registry-api-v5.service=local-trusted-issuers-registry-api-v5
+      - traefik.http.services.local-trusted-issuers-registry-api-v5.loadbalancer.server.port=3000
+      - app=trusted-issuers-registry-api-v5

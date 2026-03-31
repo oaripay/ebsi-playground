@@ -1,2 +1,12 @@
-node_modules
-.DS_Store
+/keys
+/volumes
+/core-services
+/besu-plugins
+/healthcheck
+deployment
+/volumes/node?/**
+!/volumes/node?/besu
+!/volumes/node?/besu/secret
+!/volumes/node?/besu/secret/key
+!/volumes/node?/besu/secret/key.pub
+!/volumes/node?/besu/secret/private_key.pem

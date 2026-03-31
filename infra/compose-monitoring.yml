@@ -1,0 +1,67 @@
+---
+services:
+
+  prometheus:
+    image: "${IMAGE_NAME_prometheus}:${IMAGE_TAG_prometheus}"
+    restart: unless-stopped
+    volumes:
+      - ${VOLUMES_ROOTDIR}/prometheus:/prometheus
+      - ./config/prometheus:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=1d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - ebsi-infra
+    labels:
+      - "traefik_node=infra"
+      - traefik.enable=true
+      - traefik.http.routers.prometheus.entrypoints=web
+      - traefik.http.routers.prometheus.rule=Host(`${INFRA_PROMETHEUS_DOMAIN}`)
+      - traefik.http.routers.prometheus.service=prometheus
+      - traefik.http.routers.prometheus.middlewares=prometheus-ipallowlist
+      - traefik.http.services.prometheus.loadbalancer.server.port=9090
+      - traefik.http.middlewares.prometheus-ipallowlist.ipallowlist.sourcerange=${PROMETHEUS_IP_ALLOWLIST}
+
+  grafana:
+    image: "${IMAGE_NAME_grafana}:${IMAGE_TAG_grafana}"
+    restart: unless-stopped
+    volumes:
+      - ${VOLUMES_ROOTDIR}/grafana:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/${GRAFANA_HOME_DASHBOARD_FILE}
+    networks:
+      - ebsi-infra
+    labels:
+      - "traefik_node=infra"
+      - traefik.enable=true
+      - traefik.http.routers.grafana.entrypoints=web
+      - traefik.http.routers.grafana.rule=Host(`${INFRA_DASHBOARD_DOMAIN}`)
+      - traefik.http.routers.grafana.service=grafana
+      - traefik.http.services.grafana.loadbalancer.server.port=3000
+
+  pushprox:
+    image: "${IMAGE_NAME_pushprox}:${IMAGE_TAG_pushprox}"
+    restart: unless-stopped
+    command:
+      - '--log.level=debug'
+    networks:
+      - ebsi-infra
+      - ebsi-besu-network
+    labels:
+      - "traefik_node=infra"
+      - traefik.enable=true
+      - traefik.http.routers.pushprox.entrypoints=web
+      - traefik.http.routers.pushprox.rule=Host(`${INFRA_PUSHPROX_DOMAIN}`)
+      - traefik.http.routers.pushprox.service=prometheus
+      - traefik.http.routers.pushprox.middlewares=pushprox-ipallowlist
+      - traefik.http.services.pushprox.loadbalancer.server.port=8080
+      - traefik.http.middlewares.pushprox-ipallowlist.ipallowlist.sourcerange=${PUSHPROX_IP_ALLOWLIST}

@@ -1,0 +1,66 @@
+---
+services:
+
+  ## authorisation-api-v3 (authorisation-api-v3)
+#  authorisation-api-v3:
+#    image: ${IMAGE_NAME_authorisation_api_v3}:${IMAGE_TAG_authorisation_api_v3:-local}
+#    extends:
+#      file: ./common.yaml
+#      service: common-core-service-api
+#    build:
+#      context: "${GIT_CORE_SERVICES}/apis/authorisation-v3"
+#    env_file:
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+#        required: false
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+#        required: false
+#      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/authorisation-api.env
+#        required: false
+#    labels:
+#      - traefik.enable=true
+#      - traefik.http.routers.authorisation-api-v3.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/authorisation/v3`)
+#      - traefik.http.routers.authorisation-api-v3.service=authorisation-api-v3
+#      - traefik.http.routers.authorisation-api-v3.entrypoints=web,web-secure
+#      - traefik.http.middlewares.authorisation-api-v3-headers.headers.stspreload=true
+#      - traefik.http.middlewares.authorisation-api-v3-headers.headers.stsseconds=31536000
+#      - traefik.http.middlewares.authorisation-api-v3-headers.headers.contenttypenosniff=true
+#      - traefik.http.middlewares.authorisation-api-v3-headers.headers.referrerpolicy=origin-when-cross-origin
+#      - traefik.http.routers.authorisation-api-v3.middlewares=authorisation-api-v3-headers@docker
+#      - traefik.http.services.authorisation-api-v3.loadbalancer.server.port=3000
+#      - traefik.http.routers.local-authorisation-api-v3.rule=Host(`api.local`)&&PathPrefix(`/authorisation/v3`)
+#      - traefik.http.routers.local-authorisation-api-v3.service=local-authorisation-api-v3
+#      - traefik.http.services.local-authorisation-api-v3.loadbalancer.server.port=3000
+#      - app=authorisation-api-v3
+
+  ## authorisation-api-v4 (authorisation-api-v4)
+  authorisation-api-v4:
+    image: ${IMAGE_NAME_authorisation_api_v4}:${IMAGE_TAG_authorisation_api_v4:-local}
+    extends:
+      file: ./common.yaml
+      service: common-core-service-api
+    build:
+      context: "${GIT_CORE_SERVICES}/apis/authorisation-v4"
+    env_file:
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/common.env
+        required: false
+      - path: ${ENV_DIR_CORE_SERVICES}/all_nodes/core-services/authorisation-api.env
+        required: false
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.authorisation-api-v4.rule=Host(`${API_DOMAIN}`)&&PathPrefix(`/authorisation/v4`)
+      - traefik.http.routers.authorisation-api-v4.service=authorisation-api-v4
+      - traefik.http.routers.authorisation-api-v4.entrypoints=web,web-secure
+      - traefik.http.routers.authorisation-api-v4.tls=true
+      - traefik.http.routers.authorisation-api-v4.tls.certresolver=letsencrypt-tls
+      - traefik.http.middlewares.authorisation-api-v4-headers.headers.stspreload=true
+      - traefik.http.middlewares.authorisation-api-v4-headers.headers.stsseconds=31536000
+      - traefik.http.middlewares.authorisation-api-v4-headers.headers.contenttypenosniff=true
+      - traefik.http.middlewares.authorisation-api-v4-headers.headers.referrerpolicy=origin-when-cross-origin
+      - traefik.http.routers.authorisation-api-v4.middlewares=authorisation-api-v4-headers@docker
+      - traefik.http.services.authorisation-api-v4.loadbalancer.server.port=3000
+      - traefik.http.routers.local-authorisation-api-v4.rule=Host(`api.local`)&&PathPrefix(`/authorisation/v4`)
+      - traefik.http.routers.local-authorisation-api-v4.service=local-authorisation-api-v4
+      - traefik.http.services.local-authorisation-api-v4.loadbalancer.server.port=3000
+      - app=authorisation-api-v4

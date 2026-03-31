@@ -1,0 +1,12 @@
+---
+include:
+  - ./compose-reverse-proxy.yml
+  - ./compose-monitoring.yml
+
+networks:
+  ebsi-besu-network:
+    name: "ebsi-besu-network"
+    external: true
+  ebsi-infra:
+    name: "ebsi-infra"
+    external: true

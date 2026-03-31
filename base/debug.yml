@@ -1,0 +1,15 @@
+---
+services:
+
+  debug:
+    image: busybox
+    profiles: [debug]
+    command: ["sleep", "inf"]
+    stop_grace_period: 1s
+    networks:
+      - ebsi-node
+      - ebsi-besu-network
+    extra_hosts:
+      - ${API_DOMAIN}=${NODE_REVERSE_PROXY_LOCAL_IP}
+      - ${APP_DOMAIN}=${NODE_REVERSE_PROXY_LOCAL_IP}
+      - ${BESU_DOMAIN}=${NODE_REVERSE_PROXY_LOCAL_IP}

@@ -1,0 +1,14 @@
+---
+services:
+  builder-core-services:
+    image: library/core-services-base:latest
+    profiles: [all, core-services]
+    pull_policy: ${DOCKER_PULL_POLICY:-never}
+    restart: no
+    network_mode: bridge
+    # command: ["/bin/true"]
+    build:
+      context: ${GIT_CORE_SERVICES}
+      dockerfile: Dockerfile
+      labels:
+        eu.ebsi: "true"

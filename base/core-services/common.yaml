@@ -1,0 +1,21 @@
+---
+services:
+
+  # template for core service containers:
+  common-core-service-api:
+    pull_policy: ${DOCKER_PULL_POLICY:-never}
+    profiles: [all, core-services]
+    build:
+      dockerfile: Dockerfile
+      args:
+        DOCKER_TAG: ${IMAGE_TAG_builder_core_services:-local}
+      labels:
+        eu.ebsi: "true"
+    restart: unless-stopped
+    depends_on:
+      besu:
+        condition: service_healthy
+    networks:
+      - ebsi-node
+    labels:
+      - "traefik_node=${NODE_NAME}"
