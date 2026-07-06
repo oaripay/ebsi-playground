@@ -57,7 +57,7 @@ services:
       BESU_RPC_HTTP_CORS_ORIGINS: "all"
       BESU_RPC_HTTP_HOST: "0.0.0.0"
       BESU_RPC_HTTP_PORT: "8545"
-      BESU_RPC_HTTP_API: "ETH,NET,WEB3"
+      BESU_RPC_HTTP_API: "ETH,NET,WEB3,TRACE,DEBUG,TXPOOL"
       # RPC ws:
       BESU_RPC_WS_ENABLED: "true"
       BESU_RPC_WS_HOST: "0.0.0.0"
@@ -95,24 +95,4 @@ services:
     labels:
       - "traefik_node=${NODE_NAME}"
       - traefik.enable=true
-      - traefik.http.routers.besu.entrypoints=web-secure
-      - traefik.http.routers.besu.service=besu
-      - traefik.http.routers.besu.tls=true
-      - traefik.http.routers.besu.tls.certresolver=letsencrypt-tls
-      - traefik.http.routers.besu.rule=Host(`${BESU_DOMAIN}`)&&PathPrefix(`/jsonrpc`)
-      - traefik.http.routers.besu.middlewares=besu-strip@docker
-      - traefik.http.middlewares.besu-strip.stripprefix.prefixes=/jsonrpc
-      - traefik.http.services.besu.loadbalancer.server.port=8545
-      - traefik.http.routers.besu-ws.entrypoints=web-secure
-      - traefik.http.routers.besu-ws.service=besu
-      - traefik.http.routers.besu-ws.tls=true
-      - traefik.http.routers.besu-ws.tls.certresolver=letsencrypt-tls
-      - traefik.http.routers.besu-ws.rule=Host(`${BESU_DOMAIN}`)&&PathPrefix(`/wsrpc`)
-      - traefik.http.routers.besu-ws.middlewares=besu-ws-strip@docker
-      - traefik.http.middlewares.besu-ws-strip.stripprefix.prefixes=/wsrpc
-      - traefik.http.services.besu-ws.loadbalancer.server.port=8546
-      - traefik.http.routers.local-besu.entrypoints=web
-      - traefik.http.routers.local-besu.service=local-besu
-      - traefik.http.routers.local-besu.rule=Host(`besu.local`)
-      - traefik.http.services.local-besu.loadbalancer.server.port=8545
       - app=besu

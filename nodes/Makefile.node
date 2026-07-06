@@ -44,5 +44,5 @@ ssl-setup:
 	$(COMPOSE_CMD) up -d --force-recreate node-reverse-proxy
 
 ssl-status:
-	docker logs $(NODE_NAME)-node-reverse-proxy-1 2>&1 | grep -i "acme\|cert\|letsencrypt\|certificate" | tail -10
+	docker logs node1-node-reverse-proxy-1 2>&1 | grep -i "acme\|cert\|letsencrypt\|certificate" | tail -10
 
